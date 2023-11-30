@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 // require('dotenv').config()
 dotenv.config({
-  path: "./env",
+  path: "./.env",
 });
 connectToDB()
   .then(() => {
