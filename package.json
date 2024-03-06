@@ -1,0 +1,20 @@
+{
+  "name": "videoplatform",
+  "version": "1.0.0",
+  "description": "a backend project for a video platform",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "backend",
+    "node.js",
+    "javascript"
+  ],
+  "author": "Umair Amjad",
+  "license": "ISC",
+  "devDependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
