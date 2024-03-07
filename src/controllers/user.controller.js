@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     const { fullname, username, email, password } = req.body;
@@ -28,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (existedUser) {
         throw new ApiError(
-            400,
+            409,
             "User with this email or username already exists!"
         );
     }
@@ -54,7 +55,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (!response) throw new ApiError(500, "Failed to register the User");
 
-    return response;
+    return res
+        .status(201)
+        .json(new ApiResponse(200, response, "User registered successfully!"));
 });
 
 export { registerUser };
