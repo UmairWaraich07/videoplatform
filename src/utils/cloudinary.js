@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { ApiError } from "./ApiError";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -23,4 +24,22 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 };
 
-export { uploadOnCloudinary };
+const deleteFromCloudinary = async (publicId) => {
+    try {
+        if (!publicId) {
+            throw new ApiError(
+                400,
+                "PublicId is required to delete file from cloudinary"
+            );
+        }
+        const response = await cloudinary.uploader.destroy(publicId);
+
+        console.log("File deleted from cloudinary", response);
+
+        return response;
+    } catch (error) {
+        console.log(`Failed to delete file from cloudinary: ${error}`);
+    }
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary };
