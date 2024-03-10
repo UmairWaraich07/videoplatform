@@ -63,7 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
-    if (!avatar)
+    if (!avatar.url)
         throw new ApiError(400, "Failed to upload image on Cloudinary!");
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
@@ -73,8 +73,16 @@ const registerUser = asyncHandler(async (req, res) => {
         username: username.toLowerCase(),
         email,
         password,
-        avatar: avatar.url,
-        coverImage: coverImage ? coverImage.url : "",
+        avatar: {
+            url: avatar.url,
+            public_id: avatar.public_id,
+        },
+        coverImage: coverImage
+            ? {
+                  url: coverImage.url,
+                  public_id: coverImage.public_id,
+              }
+            : "",
     });
 
     const response = await User.findById(createdUser._id).select(
@@ -269,6 +277,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const changeUserAvatar = asyncHandler(async (req, res) => {
+    const uploadedAvatarPublicId = req.user?.avatar?.public_id;
     const avatarLocalPath = req.file?.path;
 
     if (!avatarLocalPath) {
@@ -285,7 +294,10 @@ const changeUserAvatar = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                avatar: avatar.url,
+                avatar: {
+                    url: avatar.url,
+                    public_id: avatar.public_id,
+                },
             },
         },
         {
@@ -293,7 +305,7 @@ const changeUserAvatar = asyncHandler(async (req, res) => {
         }
     ).select("-password -refreshToken");
 
-    const response = await deleteFromCloudinary(avatar.public_id);
+    const response = await deleteFromCloudinary(uploadedAvatarPublicId);
 
     if (!response) {
         throw new ApiError(400, "Failed to delete avatar from cloudinary");
@@ -305,6 +317,7 @@ const changeUserAvatar = asyncHandler(async (req, res) => {
 });
 
 const changeUserCoverImage = asyncHandler(async (req, res) => {
+    const uploadedCoverImagePublicId = req.user?.coverImage?.public_id;
     const coverImageLocalPath = req.file?.path;
 
     if (!coverImageLocalPath) {
@@ -321,7 +334,10 @@ const changeUserCoverImage = asyncHandler(async (req, res) => {
         req.user?._id,
         {
             $set: {
-                coverImage: coverImage.url,
+                coverImage: {
+                    url: coverImage.url,
+                    public_id: coverImage.public_id,
+                },
             },
         },
         {
@@ -329,7 +345,7 @@ const changeUserCoverImage = asyncHandler(async (req, res) => {
         }
     ).select("-password -refreshToken");
 
-    const response = await deleteFromCloudinary(coverImage.public_id);
+    const response = await deleteFromCloudinary(uploadedCoverImagePublicId);
 
     if (!response) {
         throw new ApiError(400, "Failed to delete coverImage from cloudinary");
