@@ -305,10 +305,11 @@ const changeUserAvatar = asyncHandler(async (req, res) => {
         }
     ).select("-password -refreshToken");
 
-    const response = await deleteFromCloudinary(uploadedAvatarPublicId);
-
-    if (!response) {
-        throw new ApiError(400, "Failed to delete avatar from cloudinary");
+    if (uploadedAvatarPublicId) {
+        const response = await deleteFromCloudinary(uploadedAvatarPublicId);
+        if (!response) {
+            throw new ApiError(400, "Failed to delete avatar from cloudinary");
+        }
     }
 
     return res
@@ -318,6 +319,7 @@ const changeUserAvatar = asyncHandler(async (req, res) => {
 
 const changeUserCoverImage = asyncHandler(async (req, res) => {
     const uploadedCoverImagePublicId = req.user?.coverImage?.public_id;
+    console.log(uploadedCoverImagePublicId);
     const coverImageLocalPath = req.file?.path;
 
     if (!coverImageLocalPath) {
@@ -345,10 +347,14 @@ const changeUserCoverImage = asyncHandler(async (req, res) => {
         }
     ).select("-password -refreshToken");
 
-    const response = await deleteFromCloudinary(uploadedCoverImagePublicId);
-
-    if (!response) {
-        throw new ApiError(400, "Failed to delete coverImage from cloudinary");
+    if (uploadedCoverImagePublicId) {
+        const response = await deleteFromCloudinary(uploadedCoverImagePublicId);
+        if (!response) {
+            throw new ApiError(
+                400,
+                "Failed to delete coverImage from cloudinary"
+            );
+        }
     }
 
     return res
