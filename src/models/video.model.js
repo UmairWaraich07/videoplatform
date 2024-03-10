@@ -23,12 +23,24 @@ const videoSchema = new mongoose.Schema(
             default: 0,
         },
         thumbnail: {
-            type: String, // cloudinary URL
-            required: true,
+            url: {
+                type: String, // cloudinary URL
+                required: true,
+            },
+            public_id: {
+                type: String, // cloudinary public_id
+                required: true,
+            },
         },
         videoFile: {
-            type: String, // cloudinary URL
-            required: true,
+            url: {
+                type: String, // cloudinary URL
+                required: true,
+            },
+            public_id: {
+                type: String, // cloudinary public_id
+                required: true,
+            },
         },
         owner: {
             type: mongoose.Schema.Types.ObjectId,

@@ -42,4 +42,25 @@ const deleteFromCloudinary = async (publicId) => {
     }
 };
 
-export { uploadOnCloudinary, deleteFromCloudinary };
+const deleteVideoFromCloudinary = async (publicId) => {
+    try {
+        if (!publicId) {
+            throw new ApiError(
+                400,
+                "PublicId is required to delete file from cloudinary"
+            );
+        }
+        const response = await cloudinary.api.delete_resources([publicId], {
+            type: "upload",
+            resource_type: "video",
+        });
+
+        console.log("File deleted from cloudinary", response);
+
+        return response;
+    } catch (error) {
+        console.log(`Failed to delete file from cloudinary: ${error}`);
+    }
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary, deleteVideoFromCloudinary };
