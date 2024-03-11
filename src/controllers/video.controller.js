@@ -13,11 +13,8 @@ import {
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
-    // Validate userId
-    if (!userId) {
-        throw new ApiError(400, "User ID is missing");
-    }
-    if (!isValidObjectId(userId)) {
+    // Validate userId if provided
+    if (userId && !isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid User ID");
     }
 
@@ -52,7 +49,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
         limit: parseInt(limit),
     };
 
-    const aggregatePipeline = [
+    const aggregatePipeline = Video.aggregate([
         match,
         {
             $lookup: {
@@ -78,7 +75,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 },
             },
         },
-    ];
+    ]);
 
     // Add sort stage if it's not an empty object
     if (Object.keys(sort).length !== 0) {
