@@ -9,9 +9,92 @@ import {
     uploadOnCloudinary,
 } from "../utils/cloudinary.js";
 
+// ✅✅
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-    //TODO: get all videos based on query, sort, pagination
+
+    if (userId) {
+        if (!isValidObjectId(userId)) {
+            throw new ApiError(400, "Invalid User ID");
+        }
+    }
+    // Construct match stage for filtering
+    const match = query
+        ? {
+              $match: {
+                  $or: [
+                      { title: { $regex: query, $options: "i" } },
+                      { description: { $regex: query, $options: "i" } },
+                  ],
+              },
+          }
+        : {
+              $match: {},
+          };
+
+    // If userId is provided, add match condition for owner
+    if (userId) {
+        match.$match.owner = new mongoose.Types.ObjectId(userId);
+    }
+
+    // Construct sort stage for sorting
+    const sort =
+        sortBy && sortType
+            ? { $sort: { [sortBy]: sortType === "desc" ? -1 : 1 } }
+            : {};
+
+    const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+    };
+
+    const aggregatePipeline = Video.aggregate([
+        match,
+        {
+            $lookup: {
+                from: "users",
+                foreignField: "_id",
+                localField: "owner",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            fullname: 1,
+                            username: 1,
+                            avatar: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                owner: {
+                    $first: "$owner",
+                },
+            },
+        },
+    ]);
+
+    // Add sort stage if it's not an empty object
+    if (Object.keys(sort).length !== 0) {
+        aggregatePipeline.splice(1, 0, sort);
+    }
+
+    Video.aggregatePaginate(aggregatePipeline, options)
+        .then(function (results) {
+            return res
+                .status(200)
+                .json(
+                    new ApiResponse(200, results, "Videos fetched successfully")
+                );
+        })
+        .catch(function (err) {
+            throw new ApiError(
+                500,
+                err?.message || "Failed to fetch the videos"
+            );
+        });
 });
 
 // ✅✅

@@ -3,6 +3,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
     deleteVideo,
+    getAllVideos,
     getVideoById,
     publishAVideo,
     togglePublishStatus,
@@ -26,6 +27,8 @@ router.route("/publish-video").post(
     ]),
     publishAVideo
 );
+
+router.route("/").get(getAllVideos);
 
 router.route("/:videoId").get(getVideoById);
 
