@@ -13,24 +13,28 @@ import {
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
-    if (userId) {
-        if (!isValidObjectId(userId)) {
-            throw new ApiError(400, "Invalid User ID");
-        }
+    // Validate userId
+    if (!userId) {
+        throw new ApiError(400, "User ID is missing");
     }
+    if (!isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid User ID");
+    }
+
     // Construct match stage for filtering
-    const match = query
-        ? {
-              $match: {
-                  $or: [
-                      { title: { $regex: query, $options: "i" } },
-                      { description: { $regex: query, $options: "i" } },
-                  ],
-              },
-          }
-        : {
-              $match: {},
-          };
+    const match = {
+        $match: {
+            isPublished: true, // Filter videos with isPublished set to true
+        },
+    };
+
+    // Add additional query parameters if provided
+    if (query) {
+        match.$match.$or = [
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } },
+        ];
+    }
 
     // If userId is provided, add match condition for owner
     if (userId) {
@@ -48,7 +52,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
         limit: parseInt(limit),
     };
 
-    const aggregatePipeline = Video.aggregate([
+    const aggregatePipeline = [
         match,
         {
             $lookup: {
@@ -74,7 +78,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 },
             },
         },
-    ]);
+    ];
 
     // Add sort stage if it's not an empty object
     if (Object.keys(sort).length !== 0) {
