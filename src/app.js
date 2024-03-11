@@ -23,10 +23,12 @@ app.use(express.static("public"));
 import userRouter from "./routes/user.route.js";
 import videoRouter from "./routes/video.route.js";
 import tweetRouter from "./routes/tweet.route.js";
+import subscriptionRouter from "./routes/subscription.route.js";
 
 // routes declarations
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/tweets", tweetRouter);
+app.use("/api/v1/subscriptions", subscriptionRouter);
 
 export { app };
