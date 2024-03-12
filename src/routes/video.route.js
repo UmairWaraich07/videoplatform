@@ -36,6 +36,6 @@ router.route("/:videoId/update").patch(upload.single("thumbnail"), updateVideo);
 
 router.route("/toggle/:videoId").post(togglePublishStatus);
 
-router.route("/:videoId/delete").post(deleteVideo);
+router.route("/:videoId/delete").delete(deleteVideo);
 
 export default router;
