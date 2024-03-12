@@ -137,17 +137,17 @@ const updateTweet = asyncHandler(async (req, res) => {
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
+    const { tweetId } = req.params;
 
     // Validate userId
-    if (!userId) {
+    if (!tweetId) {
         throw new ApiError(400, "User ID is missing");
     }
-    if (!isValidObjectId(userId)) {
+    if (!isValidObjectId(tweetId)) {
         throw new ApiError(400, "Invalid User ID");
     }
 
-    const deletedTweet = await Tweet.findByIdAndDelete(userId);
+    const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
 
     // Check if tweet was deleted successfully
     if (!deletedTweet) {
@@ -156,7 +156,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Tweet deleted successfully"));
+        .json(new ApiResponse(200, true, "Tweet deleted successfully"));
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };
