@@ -13,7 +13,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     }
 
     const existingLike = await Like.findOneAndDelete({
-        video: videoId,
+        $and: [{ video: videoId }, { likedBy: req.user?._id }],
     });
 
     if (existingLike) {
@@ -48,7 +48,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     }
 
     const existingLike = await Like.findOneAndDelete({
-        comment: commentId,
+        $and: [{ comment: commentId }, { likedBy: req.user?._id }],
     });
 
     if (existingLike) {
@@ -83,7 +83,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     }
 
     const existingLike = await Like.findOneAndDelete({
-        tweet: tweetId,
+        $and: [{ tweet: tweetId }, { likedBy: req.user?._id }],
     });
 
     if (existingLike) {
