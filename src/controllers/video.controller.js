@@ -1,5 +1,6 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
+import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -8,8 +9,9 @@ import {
     deleteVideoFromCloudinary,
     uploadOnCloudinary,
 } from "../utils/cloudinary.js";
+import { Like } from "../models/like.model.js";
+import { Playlist } from "../models/playlist.model.js";
 
-// ✅✅
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
@@ -98,7 +100,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
         });
 });
 
-// ✅✅
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body;
 
@@ -106,8 +107,10 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Title or description is missing");
     }
 
-    const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
-    const videoLocalPath = req.files?.videoFile[0]?.path;
+    const thumbnailLocalPath =
+        req.files?.thumbnail && req.files?.thumbnail[0]?.path;
+    const videoLocalPath =
+        req.files?.videoFile && req.files?.videoFile[0]?.path;
 
     if (!thumbnailLocalPath || !videoLocalPath) {
         throw new ApiError(404, "Thumbnail or video is missing");
@@ -148,7 +151,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, newVideo, "Video uploaded successfully"));
 });
 
-// ✅✅
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
     if (!videoId) {
@@ -248,7 +250,6 @@ const getVideoById = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, video[0], "Video fetched successfully"));
 });
 
-// ✅✅
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
     const { title, description, thumbnail } = req.body;
@@ -320,7 +321,6 @@ const updateVideo = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, updatedVideo, "Video updated successfully"));
 });
 
-// TODO: write the deleteVideo after writting all other controllers
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
@@ -343,12 +343,37 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to delete video from cloudinary");
     }
 
+    // Delete likes associated with the video
+    await Like.deleteMany({ video: videoId });
+
+    // Find comments associated with the video
+    const comments = await Comment.find({ video: videoId });
+
+    // Loop through comments and delete associated likes
+    for (const comment of comments) {
+        await Like.deleteMany({ comment: comment._id });
+    }
+
+    // Delete comments associated with the video
+    await Comment.deleteMany({ video: videoId });
+
+    // Remove video from playlists of all users
+    await Playlist.updateMany(
+        {
+            videos: videoId,
+        },
+        {
+            $pull: {
+                videos: videoId,
+            },
+        }
+    );
+
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Video deleted successfully"));
+        .json(new ApiResponse(200, true, "Video deleted successfully"));
 });
 
-// ✅✅
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
