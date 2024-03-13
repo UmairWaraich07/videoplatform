@@ -155,6 +155,13 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Video ID is missing");
     }
 
+    // Increment the view count
+    await Video.findByIdAndUpdate(videoId, {
+        $inc: {
+            views: 1,
+        },
+    });
+
     const video = await Video.aggregate([
         {
             $match: {
@@ -208,10 +215,26 @@ const getVideoById = asyncHandler(async (req, res) => {
             },
         },
         {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes",
+            },
+        },
+        {
             $addFields: {
                 owner: {
                     $first: "$owner",
                 },
+                totalLikes: {
+                    $size: "$likes",
+                },
+            },
+        },
+        {
+            $project: {
+                likes: 0,
             },
         },
     ]);
